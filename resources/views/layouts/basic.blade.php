@@ -9,18 +9,21 @@
 
     <title>{{ config('app.name', 'Laravels') }}</title>
 
+    <!-- Fonts -->
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
+
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/theme.css') }}" rel="stylesheet">
+
 </head>
-<body class="basic-shell">
- <main class="public-shell">
-  @yield('content')
- </main>
+<body>
+ @yield('content')
  <!-- Scripts -->
  <script src="{{ mix('js/manifest.js') }}" defer></script>
  <script src="{{ mix('js/vendor.js') }}" defer></script>
  <script src="{{ mix('js/bootstrap.js') }}" defer></script>
  <script src="{{ mix('js/app.js') }} " defer></script>
+
 </body>
 </html>

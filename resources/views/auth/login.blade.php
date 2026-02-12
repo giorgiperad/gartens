@@ -79,3 +79,34 @@
 </div>
 @endsection
 
+@section('styles')
+<style>
+    .glow-badge {
+        filter: 
+            drop-shadow(0 0 12px rgba(99, 102, 241, 0.28))   /* main indigo glow */
+            drop-shadow(0 0 24px rgba(99, 102, 241, 0.16))   /* softer outer layer */
+            drop-shadow(0 0 40px rgba(139, 92, 246, 0.08));  /* very faint purple hint */
+        transition: filter 0.5s ease, transform 0.4s ease;
+    }
+
+    .glow-badge:hover,
+    .glow-badge:focus {
+        filter: 
+            drop-shadow(0 0 20px rgba(99, 102, 241, 0.45))
+            drop-shadow(0 0 36px rgba(99, 102, 241, 0.28))
+            drop-shadow(0 0 60px rgba(139, 92, 246, 0.14));
+        transform: scale(1.04);
+    }
+
+    /* Optional: very subtle breathing/pulse effect (uncomment if you like it) */
+    /*
+    @keyframes subtle-pulse {
+        0%, 100% { filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.28)) drop-shadow(0 0 24px rgba(99, 102, 241, 0.16)); }
+        50%      { filter: drop-shadow(0 0 16px rgba(99, 102, 241, 0.38)) drop-shadow(0 0 32px rgba(99, 102, 241, 0.22)); }
+    }
+    .glow-badge {
+        animation: subtle-pulse 6s ease-in-out infinite;
+    }
+    */
+</style>
+@endsection

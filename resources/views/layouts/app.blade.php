@@ -9,13 +9,18 @@
 
     <title>{{ config('app.name', 'რეგისტრაცია') }}</title>
 
+    <!-- Fonts -->
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
+    
     @stack('styles')
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/vendors/admin-lte-core.css') }}">
-    <link href="{{ asset('css/theme.css') }}" rel="stylesheet">
+
+
 </head>
-<body class="font-sans antialiased hold-transition sidebar-mini layout-fixed app-shell">
+<body class="font-sans antialiased hold-transition sidebar-mini layout-fixed">
   @include('partials.navigation')
   @include('partials.main-sidebar')
     <main class="content-wrapper" id="app">
