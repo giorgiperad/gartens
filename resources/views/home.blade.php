@@ -255,7 +255,7 @@ body {
                 <a href="{{ route('municipalities.list') }}" class="stat-card">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="stat-card-content">
-                            <p>მუნიციპალიტეტიaaa</p>
+                            <p>მუნიციპალიტეტი</p>
                             @if($municipality_count)
                                 <h3>{{$municipality_count}}</h3>
                             @else
