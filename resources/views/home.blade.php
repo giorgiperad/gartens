@@ -223,7 +223,7 @@ body {
 <div class="modern-header">
     <div class="container-fluid header-content">
         <div>
-            <h1>ზოგადი ინფორმაცია</h1>
+            <h1>ზოგადი ინფორმაცია2</h1>
             <p>სიღნაღის მუნიციპალიტეტის სკოლამდელი აღზრდის დაწესებულებათა გაერთიანება</p>
         </div>
         <div class="header-emblem">
