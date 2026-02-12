@@ -2,7 +2,7 @@
     <!-- Brand -->
     <a href="{{ route('home') }}" class="brand-link d-flex align-items-center justify-content-center gap-2">
         
-        <span class="brand-text fw-bold">Administrator</span>
+        <span class="brand-text fw-bold"></span>
     </a>
 
     <div class="sidebar">

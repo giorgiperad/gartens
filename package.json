@@ -25,6 +25,7 @@
         "resolve-url-loader": "^3.1.0",
         "sass": "^1.15.2",
         "sass-loader": "^8.0.0",
+        "semver": "^7.5.4",
         "vanillajs-datepicker": "^1.1.4",
         "vue-template-compiler": "^2.6.14"
     },

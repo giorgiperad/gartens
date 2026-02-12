@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Paper, CssBaseline, Typography } from '@material-ui/core';
+import { Paper, CssBaseline, Typography, Box } from '@material-ui/core';
 import { ThemeProvider } from '@material-ui/core/styles';
 
 
@@ -106,23 +106,27 @@ export default function MaterialLayout(props) {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <div className={classes.root}>
+      <div className={classes.page}>
         <Paper className={classes.paper}>{children}</Paper>
       </div>
-      <br/>
-      <div className={classes.root}>
+
+      <div className={classes.page}>
         <Paper className={classes.paper}>
-           
-                <Typography className={classes.titleFont} component="h1" variant="h4" align="center">
-                  გადაამოწმეთ რეგისტრაცია პირადი ნომრით
-                </Typography>
-                <MuiAlert severity="warning" style={{ marginBottom: '1em' }}>
-                  <span className={classes.titleFont}>რეგისტრაციის შესამოწმებლად ჩაწერეთ პირადი ნომერი!</span>
-                </MuiAlert >
-                <SearchBar placeholder="ძებნა" onChange={(newValue) => doSomethingWith(newValue)} />
-                <br/>
-                { (searchedData && searchedData.length !== 0) ? (<Table columns={columns} data={searchedData} />) : (<div></div>) }
-             
+          <Typography className={classes.sectionTitle} component="h2" variant="h5">
+            გადაამოწმეთ რეგისტრაცია პირადი ნომრით
+          </Typography>
+          <Typography className={classes.sectionSubtitle} component="p">
+            რეგისტრაციის სტატუსის სანახავად ჩაწერეთ პირადი ნომერი.
+          </Typography>
+          <MuiAlert severity="warning" className={classes.notice}>
+            <span>რეგისტრაციის შესამოწმებლად ჩაწერეთ პირადი ნომერი.</span>
+          </MuiAlert>
+          <Box className={classes.searchWrap}>
+            <SearchBar placeholder="ძებნა" onChange={(newValue) => doSomethingWith(newValue)} />
+          </Box>
+          {searchedData && searchedData.length !== 0 ? (
+            <Table columns={columns} data={searchedData} />
+          ) : null}
         </Paper>
       </div>
     </ThemeProvider>

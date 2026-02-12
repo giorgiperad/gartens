@@ -18,11 +18,12 @@
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/theme.css') }}?v=20260212">
 </head>
-<body>
+<body class="login-shell">
     <div id="app">
         
-        <main class="py-4">
+        <main class="login-shell-main">
             @yield('content')
         </main>
     </div>

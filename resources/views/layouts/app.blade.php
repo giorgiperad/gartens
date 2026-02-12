@@ -16,11 +16,12 @@
     @stack('styles')
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/theme.css') }}?v=20260212">
     <link rel="stylesheet" href="{{ asset('css/vendors/admin-lte-core.css') }}">
 
 
 </head>
-<body class="font-sans antialiased hold-transition sidebar-mini layout-fixed">
+<body class="font-sans antialiased hold-transition sidebar-mini layout-fixed app-shell">
   @include('partials.navigation')
   @include('partials.main-sidebar')
     <main class="content-wrapper" id="app">

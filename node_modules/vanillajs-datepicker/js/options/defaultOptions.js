@@ -1,18 +1,18 @@
 // config options updatable by setOptions() and their default values
-const defaultOptions = {
+export default {
   autohide: false,
   beforeShowDay: null,
   beforeShowDecade: null,
   beforeShowMonth: null,
   beforeShowYear: null,
-  calendarWeeks: false,
-  clearBtn: false,
+  clearButton: false,
   dateDelimiter: ',',
   datesDisabled: [],
   daysOfWeekDisabled: [],
   daysOfWeekHighlighted: [],
   defaultViewDate: undefined, // placeholder, defaults to today() by the program
   disableTouchKeyboard: false,
+  enableOnReadonly: true,
   format: 'mm/dd/yyyy',
   language: 'en',
   maxDate: null,
@@ -28,11 +28,10 @@ const defaultOptions = {
   showOnFocus: true,
   startView: 0,
   title: '',
-  todayBtn: false,
-  todayBtnMode: 0,
+  todayButton: false,
+  todayButtonMode: 0,
   todayHighlight: false,
   updateOnBlur: true,
+  weekNumbers: 0,
   weekStart: 0,
 };
-
-export default defaultOptions;

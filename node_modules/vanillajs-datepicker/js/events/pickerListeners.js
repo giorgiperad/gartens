@@ -1,4 +1,4 @@
-import {today, addMonths, addYears} from '../lib/date.js';
+import {addMonths, addYears} from '../lib/date.js';
 import {findElementInEventPath} from '../lib/event.js';
 import {goToPrevOrNext, switchView} from './functions.js';
 
@@ -13,36 +13,15 @@ function goToSelectedMonthOrYear(datepicker, selection) {
   picker.changeFocus(newDate).changeView(viewId - 1).render();
 }
 
-export function onClickTodayBtn(datepicker) {
-  const picker = datepicker.picker;
-  const currentDate = today();
-  if (datepicker.config.todayBtnMode === 1) {
-    if (datepicker.config.autohide) {
-      datepicker.setDate(currentDate);
-      return;
-    }
-    datepicker.setDate(currentDate, {render: false});
-    picker.update();
-  }
-  if (picker.viewDate !== currentDate) {
-    picker.changeFocus(currentDate);
-  }
-  picker.changeView(0).render();
-}
-
-export function onClickClearBtn(datepicker) {
-  datepicker.setDate({clear: true});
-}
-
 export function onClickViewSwitch(datepicker) {
   switchView(datepicker);
 }
 
-export function onClickPrevBtn(datepicker) {
+export function onClickPrevButton(datepicker) {
   goToPrevOrNext(datepicker, -1);
 }
 
-export function onClickNextBtn(datepicker) {
+export function onClickNextButton(datepicker) {
   goToPrevOrNext(datepicker, 1);
 }
 
@@ -54,17 +33,16 @@ export function onClickView(datepicker, ev) {
   }
 
   const {id, isMinView} = datepicker.picker.currentView;
+  const data = target.dataset;
   if (isMinView) {
-    datepicker.setDate(Number(target.dataset.date));
+    datepicker.setDate(Number(data.date));
   } else if (id === 1) {
-    goToSelectedMonthOrYear(datepicker, Number(target.dataset.month));
+    goToSelectedMonthOrYear(datepicker, Number(data.month));
   } else {
-    goToSelectedMonthOrYear(datepicker, Number(target.dataset.year));
+    goToSelectedMonthOrYear(datepicker, Number(data.year));
   }
 }
 
-export function onClickPicker(datepicker) {
-  if (!datepicker.inline && !datepicker.config.disableTouchKeyboard) {
-    datepicker.inputField.focus();
-  }
+export function onMousedownPicker(ev) {
+  ev.preventDefault();
 }

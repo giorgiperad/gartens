@@ -1,5 +1,11 @@
 @extends('layouts.basic')
 
 @section('content')
- <div id="children-form" bla="19"></div>
+<section class="children-shell">
+	<div class="children-wrap">
+		<div class="children-card">
+			<div id="children-form" bla="19"></div>
+		</div>
+	</div>
+</section>
 @endsection

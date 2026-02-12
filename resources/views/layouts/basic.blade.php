@@ -15,10 +15,13 @@
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/theme.css') }}?v=20260212">
 
 </head>
-<body>
- @yield('content')
+<body class="basic-shell">
+ <main class="public-shell">
+  @yield('content')
+ </main>
  <!-- Scripts -->
  <script src="{{ mix('js/manifest.js') }}" defer></script>
  <script src="{{ mix('js/vendor.js') }}" defer></script>

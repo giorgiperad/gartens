@@ -115,10 +115,13 @@ export default function CheckoutPage() {
       {dataObject && dataObject.setting && !dataObject.setting.object.isRegistrationStart ? 
         (<div>რეგისტრაცია ნებადართული არ არის!</div>) :
         (<React.Fragment>
-          <Typography className={classes.titleFont} component="h1" variant="h4" align="center">
+          <Typography className={classes.pageTitle} component="h1" variant="h4" align="center">
             სარეგისტრაციო ფორმა
           </Typography>
-          <Stepper activeStep={activeStep} className={classes.stepper}>
+          <Typography className={classes.pageSubtitle} component="p" align="center">
+            შეავსეთ ველები მოკლედ და ზუსტად. აუცილებელი ველები მონიშნულია.
+          </Typography>
+          <Stepper activeStep={activeStep} className={classes.stepper} alternativeLabel>
             {steps.map(label => (
               <Step key={label}>
                 <StepLabel>{label}</StepLabel>
@@ -146,7 +149,7 @@ export default function CheckoutPage() {
                     {_renderStepContent(activeStep, setFieldValue, dataObject, setDataObject)} 
                     <div className={classes.buttons}>
                       {activeStep !== 0 && (
-                        <Button onClick={_handleBack} className={classes.button}>
+                        <Button onClick={_handleBack} className={classes.buttonSecondary}>
                           უკან
                         </Button>
                       )}
@@ -156,7 +159,7 @@ export default function CheckoutPage() {
                           type="submit"
                           variant="contained"
                           color="primary"
-                          className={classes.button}>
+                          className={classes.buttonPrimary}>
                           {isLastStep ? 'დასრულება' : 'შემდეგი'}
                         </Button>
                         {isSubmitting && (

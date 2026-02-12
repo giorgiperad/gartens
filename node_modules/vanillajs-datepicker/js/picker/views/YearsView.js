@@ -1,5 +1,5 @@
-import {hasProperty, pushUnique, createTagRepeat} from '../../lib/utils.js';
-import {dateValue, startOfYearPeriod} from '../../lib/date.js';
+import {pushUnique, createTagRepeat} from '../../lib/utils.js';
+import {dateValue, regularizeDate, startOfYearPeriod} from '../../lib/date.js';
 import {parseHTML} from '../../lib/dom.js';
 import View from './View.js';
 
@@ -25,7 +25,7 @@ export default class YearsView extends View {
   }
 
   setOptions(options) {
-    if (hasProperty(options, 'minDate')) {
+    if ('minDate' in options) {
       if (options.minDate === undefined) {
         this.minYear = this.minDate = undefined;
       } else {
@@ -33,7 +33,7 @@ export default class YearsView extends View {
         this.minDate = dateValue(this.minYear, 0, 1);
       }
     }
-    if (hasProperty(options, 'maxDate')) {
+    if ('maxDate' in options) {
       if (options.maxDate === undefined) {
         this.maxYear = this.maxDate = undefined;
       } else {
@@ -41,7 +41,12 @@ export default class YearsView extends View {
         this.maxDate = dateValue(this.maxYear, 11, 31);
       }
     }
-    if (options[this.beforeShowOption] !== undefined) {
+    if (options.checkDisabled) {
+      this.checkDisabled = this.isMinView || options.datesDisabled === null
+        ? options.checkDisabled
+        : () => false;
+    }
+    if (this.beforeShowOption in options) {
       const beforeShow = options[this.beforeShowOption];
       this.beforeShow = typeof beforeShow === 'function' ? beforeShow : undefined;
     }
@@ -76,93 +81,38 @@ export default class YearsView extends View {
 
   // Update the entire view UI
   render() {
-    // refresh disabled years on every render in order to clear the ones added
-    // by beforeShow hook at previous render
-    this.disabled = [];
-
-    this.picker.setViewSwitchLabel(`${this.first}-${this.last}`);
-    this.picker.setPrevBtnDisabled(this.first <= this.minYear);
-    this.picker.setNextBtnDisabled(this.last >= this.maxYear);
+    this.prepareForRender(
+      `${this.first}-${this.last}`,
+      this.first <= this.minYear,
+      this.last >= this.maxYear
+    );
 
     Array.from(this.grid.children).forEach((el, index) => {
-      const classList = el.classList;
       const current = this.start + (index * this.step);
-      const date = dateValue(current, 0, 1);
+      const date = regularizeDate(new Date(current, 0, 1), 2, this.isRangeEnd);
 
-      el.className = `datepicker-cell ${this.cellClass}`;
-      if (this.isMinView) {
-        el.dataset.date = date;
-      }
-      el.textContent = el.dataset.year = current;
-
-      if (index === 0) {
-        classList.add('prev');
-      } else if (index === 11) {
-        classList.add('next');
-      }
-      if (current < this.minYear || current > this.maxYear) {
-        classList.add('disabled');
-      }
-      if (this.range) {
-        const [rangeStart, rangeEnd] = this.range;
-        if (current > rangeStart && current < rangeEnd) {
-          classList.add('range');
-        }
-        if (current === rangeStart) {
-          classList.add('range-start');
-        }
-        if (current === rangeEnd) {
-          classList.add('range-end');
-        }
-      }
-      if (this.selected.includes(current)) {
-        classList.add('selected');
-      }
-      if (current === this.focused) {
-        classList.add('focused');
-      }
-
-      if (this.beforeShow) {
-        this.performBeforeHook(el, current, date);
-      }
+      el.dataset.year = current;
+      this.renderCell(
+        el,
+        current,
+        current,
+        date,
+        this,
+        current < this.minYear || current > this.maxYear
+      );
     });
   }
 
   // Update the view UI by applying the changes of selected and focused items
   refresh() {
-    const [rangeStart, rangeEnd] = this.range || [];
-    this.grid
-      .querySelectorAll('.range, .range-start, .range-end, .selected, .focused')
-      .forEach((el) => {
-        el.classList.remove('range', 'range-start', 'range-end', 'selected', 'focused');
-      });
+    const range = this.range || [];
     Array.from(this.grid.children).forEach((el) => {
-      const current = Number(el.textContent);
-      const classList = el.classList;
-      if (current > rangeStart && current < rangeEnd) {
-        classList.add('range');
-      }
-      if (current === rangeStart) {
-        classList.add('range-start');
-      }
-      if (current === rangeEnd) {
-        classList.add('range-end');
-      }
-      if (this.selected.includes(current)) {
-        classList.add('selected');
-      }
-      if (current === this.focused) {
-        classList.add('focused');
-      }
+      this.refreshCell(el, Number(el.textContent), this.selected, range);
     });
   }
 
   // Update the view UI by applying the change of focused item
   refreshFocus() {
-    const index = Math.round((this.focused - this.start) / this.step);
-    this.grid.querySelectorAll('.focused').forEach((el) => {
-      el.classList.remove('focused');
-    });
-    this.grid.children[index].classList.add('focused');
+    this.changeFocusedCell(Math.round((this.focused - this.start) / this.step));
   }
 }

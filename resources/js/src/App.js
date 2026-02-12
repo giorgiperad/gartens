@@ -15,7 +15,7 @@ const CheckoutPage = React.lazy(() => import(
 
 import './index.css';
 
-import './app.css';
+import './App.css';
 
 function App() {
   return (
