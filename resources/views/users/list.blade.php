@@ -46,13 +46,16 @@
             <td>{{$item->name}}</td>
             <td>{{$item->email}}</td>
             <td style="text-align:center;">
-              @if (auth()->user()->is_administrator)
-              <button 
-                type="button" 
+              <a href="{{ route('users.show', ['id' => $item->id]) }}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-edit"></i> რედაქტირება
+              </a>
+              @if ((int) $item->id !== (int) auth()->user()->id)
+              <button
+                type="button"
                 class="btn btn-sm btn-danger"
-                data-href="{{route('users.destroy', ['id' => $item->id])}}"
+                data-href="{{ route('users.destroy', ['id' => $item->id]) }}"
                 onclick="nottify(event)">
-                  <i class="fas fa-shield-alt"></i> წაშლა
+                <i class="fas fa-shield-alt"></i> წაშლა
               </button>
               @endif
             </td>

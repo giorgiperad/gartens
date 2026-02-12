@@ -43,6 +43,8 @@ class SettingController extends Controller
         $request->merge(['object' => $mergeData]);
         $model->fill($request->all());
         $model->save();
+
+        $this->logAudit('settings.update', Setting::class, $model->id, 'Basic settings updated', $request->input('object', []));
         
         $message = [
             'flashType'    => 'success',
@@ -78,6 +80,8 @@ class SettingController extends Controller
 
         $setting_date->fill($request->all());
         $setting_date->save();
+
+        $this->logAudit('settings.date', Setting::class, $setting_date->id, 'Date settings updated', $request->input('object', []));
 
         if(!$setting_basic) {
             $setting_basic = new Setting;
@@ -159,6 +163,8 @@ class SettingController extends Controller
         $basic->object = $oldBasic;
         $basic->save();
 
+        $this->logAudit('settings.learningStart', Setting::class, $basic->id, 'Learning start executed');
+
         return back()->withInput()->withErrors([])->with($message);
     }
 
@@ -186,6 +192,8 @@ class SettingController extends Controller
 
         $basic->object = $oldBasic;
         $basic->save();
+
+        $this->logAudit('settings.learningEnd', Setting::class, $basic->id, 'Learning end executed');
 
         return back()->withInput()->withErrors([])->with($message);
     }
@@ -241,6 +249,8 @@ class SettingController extends Controller
 
         $basic->object = $oldBasic;
         $basic->save();
+
+        $this->logAudit('settings.learning', Setting::class, $basic->id, 'Learning process executed');
 
         return back()->withInput()->withErrors([])->with($message);
     }

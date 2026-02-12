@@ -46,6 +46,7 @@ class KindergartenerController extends Controller
     public function store(Request $request)
 {
     $kindergartener = Kindergartener::firstOrNew(['id' => $request->id]);
+    $isNew = !$request->filled('id');
 
     $validator = Validator::make($request->all(), [
         'municipality_id' => ['required'],
@@ -93,6 +94,7 @@ class KindergartenerController extends Controller
 
     // ვავსებთ ძირითად ინფორმაციას
     $kindergartener->fill($request->all());
+    $changes = $this->buildAuditChanges($kindergartener);
     $kindergartener->save();
 
     // ვამუშავებთ პრივილეგიას
@@ -125,6 +127,9 @@ class KindergartenerController extends Controller
         'space_free' => $kindergartenAgeRange->pivot->space_free - 1
     ];
     $kindergarten->groupAgeRanges()->updateExistingPivot($request->group_id, $newData);
+
+    $action = $isNew ? 'kindergartener.create' : 'kindergartener.update';
+    $this->logAudit($action, Kindergartener::class, $kindergartener->id, 'Kindergartener saved', $changes);
 
     $insertOrUpdate = $request->id ? 'განახლდა' : 'დაემატა';
 
@@ -185,7 +190,12 @@ class KindergartenerController extends Controller
         //
         if (!isset($id)) return back();
 
-        $model = Kindergartener::destroy($id);
+        $model = Kindergartener::find($id);
+        $details = $model
+            ? ['name' => $model->kids_first_name.' '.$model->kids_last_name, 'kids_personal_number' => $model->kids_personal_number]
+            : null;
+        Kindergartener::destroy($id);
+        $this->logAudit('kindergartener.delete', Kindergartener::class, $id, 'Kindergartener deleted', $details);
         $message = [
           'flashType'    => 'success',
           'flashMessage' => 'აღსაზრდელი წაიშალა ბაზიდან!'
@@ -242,6 +252,12 @@ class KindergartenerController extends Controller
           'flashType'    => 'success',
           'flashMessage' => 'ცვლილება შესრულდა წარმატებით'
         ];
+
+             $this->logAudit('kindergartener.bulk_action', Kindergartener::class, null, 'Bulk action applied', [
+                     'action' => $action,
+                     'destination' => $destination,
+                     'ids' => $request->ids
+             ]);
 
        return redirect()->route('kindergarteners.index')->with($message);
     }

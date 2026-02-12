@@ -3,13 +3,28 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Model\RegistrationText;
 
 class ChildrenController extends Controller
 {
     //
 
     public function index () {
+        $defaults = [
+            'title' => 'საბავშვო ბაღების გაერთიანება',
+            'subtitle' => 'ბავშვის რეგისტრაცია',
+            'description' => 'შეავსეთ განაცხადი ზუსტად და სრულად. სისტემა ავტომატურად გადამოწმებს აუცილებელ ველებს.'
+        ];
 
-    	return view('children');
+        $model = RegistrationText::first();
+        $registrationText = [
+            'title' => $model && $model->title ? $model->title : $defaults['title'],
+            'subtitle' => $model && $model->subtitle ? $model->subtitle : $defaults['subtitle'],
+            'description' => $model && $model->description ? $model->description : $defaults['description']
+        ];
+
+        return view('children', [
+            'registrationText' => $registrationText
+        ]);
     }
 }

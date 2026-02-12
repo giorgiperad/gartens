@@ -32,11 +32,16 @@ class UserController extends Controller
     public function store(Request $request)
     {
         //
-        $validator = Validator::make($request->all(), [
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($request->id)],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
+        ];
+
+        if ($request->filled('password')) {
+            $rules['password'] = ['string', 'min:8', 'confirmed'];
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
@@ -47,11 +52,24 @@ class UserController extends Controller
           'flashMessage' => 'მომხმარებლის მონაცემი წარმატებით განახლდა!'
         ];
 
-        $request->merge(['password' => Hash::make($request->password)]);
-
         $model = User::find($request->id);
+        if (!$model) {
+            return redirect()->back()->withInput()->withErrors(['id' => 'User not found.']);
+        }
+
+        if ($request->filled('password')) {
+            $request->merge(['password' => Hash::make($request->password)]);
+        } else {
+            $request->request->remove('password');
+        }
         $model->fill($request->all());
+        $changes = $this->buildAuditChanges($model);
+        if (isset($changes['password'])) {
+            unset($changes['password']);
+        }
         $model->save();
+
+        $this->logAudit('user.update', User::class, $model->id, 'User updated', $changes);
 
         return back()->withInput()->withErrors([])->with($message);
     }
@@ -66,8 +84,6 @@ class UserController extends Controller
     {
         //
         $model = User::firstOrNew(['id' => $id]);
-
-        if ($model->id !== auth()->user()->id) abort('404');
 
         return view('users.modify')->withModel($model);
     }
@@ -96,7 +112,17 @@ class UserController extends Controller
         //
         if (!isset($id)) return back();
 
-        $model = User::destroy($id);
+        if ((int) $id === (int) auth()->user()->id) {
+            return back()->with([
+                'flashType' => 'error',
+                'flashMessage' => 'საკუთარი ანგარიშის წაშლა დაუშვებელია.'
+            ]);
+        }
+
+        $model = User::find($id);
+        $details = $model ? ['name' => $model->name, 'email' => $model->email] : null;
+        User::destroy($id);
+        $this->logAudit('user.delete', User::class, $id, 'User deleted', $details);
         $message = [
           'flashType'    => 'success',
           'flashMessage' => 'მომხმარებელი წაიშალა წარმატებით'

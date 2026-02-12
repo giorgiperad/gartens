@@ -1,7 +1,7 @@
 @extends('layouts.login')
 
 @section('content')
-<div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+<div class="min-vh-100 d-flex align-items-center justify-content-center">
     <div class="card shadow-lg border-0 rounded-4 overflow-hidden w-100" style="max-width: 900px;">
         <div class="row g-0">
             {{-- Left: Login form --}}
@@ -49,7 +49,7 @@
 
                         @if (Route::has('password.request'))
                             <a class="small text-primary text-decoration-none fw-semibold" href="{{ route('password.request') }}">
-                                {{ __('პაროლის აღდგენა') }}
+                                {{ __(' ') }}
                             </a>
                         @endif
                     </div>

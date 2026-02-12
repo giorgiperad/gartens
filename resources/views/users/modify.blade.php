@@ -5,9 +5,9 @@
 <div class="content-header">
 	  <div class="container-fluid">
 	   <div class="row mb-2">
-	    <div class="col-sm-6">
-	     <h1 class="m-0">რეგიონი</h1>
-	    </div><!-- /.col -->
+        <div class="col-sm-6">
+         <h1 class="m-0">მომხმარებელი</h1>
+        </div><!-- /.col -->
 	   </div><!-- /.row -->
 	  </div><!-- /.container-fluid -->
 	 </div>
@@ -73,9 +73,9 @@
             </div>       
           </div>
           <div class="col-12 col-md-12 col-lg-4 order-1 order-md-2">
-            <button type="button" class="btn btn-danger  btn-block" style="margin-right: 5px;">
-        <i class="far fa-window-close"></i> Cancel
-      </button>
+                        <button type="button" class="btn btn-danger btn-block" style="margin-right: 5px;" onclick="location.href='{{ route('users.list') }}'">
+                <i class="far fa-window-close"></i> Cancel
+            </button>
       <button type="submit" class="btn btn-success  btn-block">
         <i class="far fa-paper-plane"></i> Submit
       </button>

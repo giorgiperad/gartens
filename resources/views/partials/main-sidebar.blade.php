@@ -86,10 +86,24 @@
                         </li>
 
                         <li class="nav-item">
+                            <a href="{{ route('registration-texts.index') }}" class="nav-link {{ request()->is('registration-texts') ? 'active' : '' }}">
+                                <i class="fas fa-align-left nav-icon"></i>
+                                <p>ტექსტი</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="{{ route('audit-logs.index') }}" class="nav-link {{ request()->is('audit-logs') ? 'active' : '' }}">
+                                <i class="fas fa-clipboard-list nav-icon"></i>
+                                <p>აუდიტის ჟურნალი</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
                             @if (data_get($settings, 'basic.object.canPorting'))
                                 <form id="portireba" method="POST" action="{{ route('settings.learning') }}">
                                     @csrf
-                                    <a class="nav-link text-danger"
+                                                <a class="nav-link nav-danger"
                                        style="cursor:pointer;"
                                        data-submit="portireba"
                                        data-message="პორტირება აუცილებლად უნდა შესრულდეს მხოლოდ სასწავლო წლის დასრულების შემდეგ ერთჯერადად!"
