@@ -8,30 +8,34 @@
 
 
     <!-- Right navbar links -->
-    <ul class="navbar-nav ml-auto">
-      
-      <li class="nav-item dropdown">
-  <a class="nav-link" data-toggle="dropdown" href="#">
-    {{auth()->user()->name}}
-  </a>
-  <div class="dropdown-menu">
-    <a class='dropdown-item' href="{{ route('users.show', ['id' => auth()->user()->id]) }}">
-      პაროლის შეცვლა
-    </a>
+        <ul class="navbar-nav ml-auto">
+            @auth
+            <li class="nav-item dropdown">
+                <a class="nav-link" data-toggle="dropdown" href="#">
+                    {{ auth()->user()->name }}
+                </a>
+                <div class="dropdown-menu">
+                    <a class='dropdown-item' href="{{ route('users.show', ['id' => auth()->user()->id]) }}">
+                        პაროლის შეცვლა
+                    </a>
 
-    <form id="logout-form" method="POST" action="{{ route('logout') }}">
-        @csrf
-        <a class='dropdown-item' 
-         href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-        გასვლა
-      </a>
-    </form>
+                    <form id="logout-form" method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <a class='dropdown-item' 
+                             href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            გასვლა
+                        </a>
+                    </form>
 
-    <!-- <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a> -->
-
-  </div>
-</li>
-</ul>
+                </div>
+            </li>
+            @endauth
+            @guest
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('login') }}">შესვლა</a>
+                </li>
+            @endguest
+        </ul>
   </nav>
   <!-- /.navbar -->
 
