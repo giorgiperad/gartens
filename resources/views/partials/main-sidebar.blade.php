@@ -93,13 +93,6 @@
                         </li>
 
                         <li class="nav-item">
-                            <a href="{{ route('registration-texts.rules') }}" class="nav-link {{ request()->is('registration-texts/rules') ? 'active' : '' }}">
-                                <i class="fas fa-book nav-icon"></i>
-                                <p>წესები</p>
-                            </a>
-                        </li>
-
-                        <li class="nav-item">
                             <a href="{{ route('audit-logs.index') }}" class="nav-link {{ request()->is('audit-logs') ? 'active' : '' }}">
                                 <i class="fas fa-clipboard-list nav-icon"></i>
                                 <p>აუდიტის ჟურნალი</p>

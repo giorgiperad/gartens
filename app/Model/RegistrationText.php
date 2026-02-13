@@ -9,7 +9,6 @@ class RegistrationText extends Model
     protected $fillable = [
         'title',
         'subtitle',
-        'description',
-        'rules'
+        'description'
     ];
 }

@@ -13,16 +13,14 @@ class ChildrenController extends Controller
         $defaults = [
             'title' => 'საბავშვო ბაღების გაერთიანება',
             'subtitle' => 'ბავშვის რეგისტრაცია',
-            'description' => 'შეავსეთ განაცხადი ზუსტად და სრულად. სისტემა ავტომატურად გადამოწმებს აუცილებელ ველებს.',
-            'rules' => 'რეგისტრაციის წესები ჯერ არ არის დამატებული.'
+            'description' => 'შეავსეთ განაცხადი ზუსტად და სრულად. სისტემა ავტომატურად გადამოწმებს აუცილებელ ველებს.'
         ];
 
         $model = RegistrationText::first();
         $registrationText = [
             'title' => $model && $model->title ? $model->title : $defaults['title'],
             'subtitle' => $model && $model->subtitle ? $model->subtitle : $defaults['subtitle'],
-            'description' => $model && $model->description ? $model->description : $defaults['description'],
-            'rules' => $model && $model->rules ? $model->rules : $defaults['rules']
+            'description' => $model && $model->description ? $model->description : $defaults['description']
         ];
 
         return view('children', [

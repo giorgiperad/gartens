@@ -87,8 +87,6 @@ Route::group(['middleware' => ['auth', 'check']], function () {
   Route::prefix('registration-texts')->name('registration-texts.')->group(function () {
     Route::get('', 'RegistrationTextController@index')->name('index');
     Route::post('store', 'RegistrationTextController@store')->name('store');
-    Route::get('rules', 'RegistrationTextController@rules')->name('rules');
-    Route::post('rules', 'RegistrationTextController@storeRules')->name('rules.store');
   });
 
   Route::prefix('audit-logs')->name('audit-logs.')->group(function () {
