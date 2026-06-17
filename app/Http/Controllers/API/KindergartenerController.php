@@ -359,21 +359,57 @@ class KindergartenerController extends Controller
             $group_range = $item->groupRange;
             $garden = $item->kindergarten;
             $gardenByGroupAge = $garden->currentAge($group_range->id);
+            
             if ($destination == 4) {
-               $newData = [
-                  'space_filled' => $gardenByGroupAge->pivot->space_filled > 0 ? $gardenByGroupAge->pivot->space_filled - 1 : 0,
-                  'space_free' => $gardenByGroupAge->pivot->space_free + 1
-               ];
-               $garden->groupAgeRanges()->updateExistingPivot($group_range->id, $newData);
+               // ბავშვი inactive => space_filled--, space_free++
+               if ($gardenByGroupAge && $gardenByGroupAge->pivot) {
+                   $newFilled = max(0, $gardenByGroupAge->pivot->space_filled - 1);
+                   $newFree = $gardenByGroupAge->pivot->space_free + 1;
+                   
+                   DB::table('kindergarten_group_age_range')
+                       ->where('kindergarten_id', $garden->id)
+                       ->where('group_age_range', $group_range->id)
+                       ->update([
+                           'space_filled' => $newFilled,
+                           'space_free' => $newFree
+                       ]);
+                   
+                   \Log::info('Space update (status to inactive)', [
+                       'kindergarten_id' => $garden->id,
+                       'group_id' => $group_range->id,
+                       'new_filled' => $newFilled,
+                       'new_free' => $newFree
+                   ]);
+               }
             } else if (($destination == 1 || $destination == 2) && $item->active_status_id == 4) {
-                $newData = [
-                  'space_filled' => $gardenByGroupAge->pivot->space_filled + 1,
-                  'space_free' => $gardenByGroupAge->pivot->space_free > 0 ? $gardenByGroupAge->pivot->space_free - 1 : 0
-                ];
-                if (($gardenByGroupAge->pivot->space_filled + 1) > $gardenByGroupAge->pivot->space_length) {
-                    $newData['space_length'] = $gardenByGroupAge->pivot->space_length + 1;
+                // ბავშვი active => space_filled++, space_free--
+                if ($gardenByGroupAge && $gardenByGroupAge->pivot) {
+                    $newFilled = $gardenByGroupAge->pivot->space_filled + 1;
+                    $newFree = max(0, $gardenByGroupAge->pivot->space_free - 1);
+                    $newLength = $gardenByGroupAge->pivot->space_length;
+                    
+                    // თუ space_filled > space_length, გავზარდოთ space_length
+                    if ($newFilled > $newLength) {
+                        $newLength = $newFilled;
+                    }
+                    
+                    DB::table('kindergarten_group_age_range')
+                        ->where('kindergarten_id', $garden->id)
+                        ->where('group_age_range', $group_range->id)
+                        ->update([
+                            'space_filled' => $newFilled,
+                            'space_free' => $newFree,
+                            'space_length' => $newLength
+                        ]);
+                    
+                    \Log::info('Space update (status to active)', [
+                        'kindergarten_id' => $garden->id,
+                        'group_id' => $group_range->id,
+                        'new_filled' => $newFilled,
+                        'new_free' => $newFree,
+                        'new_length' => $newLength
+                    ]);
                 }
-                $garden->groupAgeRanges()->updateExistingPivot($group_range->id, $newData);
             }
             $garden->save();
             if(!$item->graduate) $item->fill(['active_status_id' => $destination]);
