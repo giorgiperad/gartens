@@ -21,6 +21,15 @@ class KindergartenController extends Controller
     {
         //
         $model = Kindergarten::with('groupAgeRanges')->get();
+        
+        // Auto-verify and fix space data on list display
+        $model->each(function($kindergarten) {
+            $kindergarten->verifyAndFixSpaceData();
+        });
+        
+        // Refresh data after fixes
+        $model = Kindergarten::with('groupAgeRanges')->get();
+        
         return view('kindergartens.list', ['model' => $model]);
     }
 
