@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 use App\Model\API\Kindergartener;
 
@@ -25,6 +26,46 @@ use Arr;
 
 class KindergartenerController extends Controller
 {
+    /**
+     * Build audit changes from model dirty attributes
+     */
+    protected function buildAuditChanges($model)
+    {
+        $changes = [];
+        if (method_exists($model, 'getDirty')) {
+            foreach ($model->getDirty() as $key => $newValue) {
+                $changes[$key] = [
+                    'old' => method_exists($model, 'getOriginal') ? $model->getOriginal($key) : null,
+                    'new' => $newValue
+                ];
+            }
+        }
+        return $changes;
+    }
+
+    /**
+     * Log audit action
+     */
+    protected function logAudit($action, $modelType = null, $modelId = null, $description = null, $changes = null)
+    {
+        try {
+            if (class_exists('App\Model\AuditLog')) {
+                \App\Model\AuditLog::create([
+                    'user_id' => auth()->id(),
+                    'action' => $action,
+                    'model_type' => $modelType,
+                    'model_id' => $modelId,
+                    'description' => $description,
+                    'changes' => $changes,
+                    'ip' => request()->ip(),
+                    'user_agent' => request()->userAgent()
+                ]);
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Audit log failed: '.$e->getMessage());
+        }
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -47,6 +88,7 @@ class KindergartenerController extends Controller
 {
     $kindergartener = Kindergartener::firstOrNew(['id' => $request->id]);
     $isNew = !$request->filled('id');
+    $oldGroupId = $kindergartener->group_id; // ჯერ ჩაიხსნება ძველი ჯგუფი
 
     $validator = Validator::make($request->all(), [
         'municipality_id' => ['required'],
@@ -121,12 +163,76 @@ class KindergartenerController extends Controller
         }
     }
 
-    // ჯგუფის ადგილი - სივრცის განახლება
-    $newData = [
-        'space_filled' => $kindergartenAgeRange->pivot->space_filled + 1,
-        'space_free' => $kindergartenAgeRange->pivot->space_free - 1
-    ];
-    $kindergarten->groupAgeRanges()->updateExistingPivot($request->group_id, $newData);
+    // ჯგუფის ადგილი - სივრცის განახლება (Direct SQL - უფრო საკმარი)
+    if ($isNew) {
+        // ახალი ბავშბი - დამატება ჯგუფში
+        if ($kindergartenAgeRange && $kindergartenAgeRange->pivot) {
+            $newFilled = $kindergartenAgeRange->pivot->space_filled + 1;
+            $newFree = $kindergartenAgeRange->pivot->space_free - 1;
+            
+            DB::table('kindergarten_group_age_range')
+                ->where('kindergarten_id', $kindergarten->id)
+                ->where('group_age_range', $request->group_id)
+                ->update([
+                    'space_filled' => $newFilled,
+                    'space_free' => $newFree
+                ]);
+            
+            \Log::info('Space update (new child)', [
+                'kindergarten_id' => $kindergarten->id,
+                'group_id' => $request->group_id,
+                'new_filled' => $newFilled,
+                'new_free' => $newFree
+            ]);
+        } else {
+            \Log::error('Cannot update space: kindergartenAgeRange or pivot missing', [
+                'kindergarten_id' => $kindergarten->id,
+                'group_id' => $request->group_id,
+                'kindergartenAgeRange' => $kindergartenAgeRange ? 'exists' : 'null',
+                'pivot' => $kindergartenAgeRange?->pivot ? 'exists' : 'null'
+            ]);
+        }
+    } elseif ($oldGroupId && $oldGroupId != $request->group_id) {
+        // რედაქტირება - ჯგუფი შეიცვალა => გადატანა ორი ჯგუფიდან
+        $oldKindergartenAgeRange = $kindergarten->currentAge($oldGroupId);
+        
+        // ხელმოხსნის ძველი ჯგუფიდან
+        if ($oldKindergartenAgeRange && $oldKindergartenAgeRange->pivot) {
+            $oldFilled = max(0, $oldKindergartenAgeRange->pivot->space_filled - 1);
+            $oldFree = $oldKindergartenAgeRange->pivot->space_free + 1;
+            
+            DB::table('kindergarten_group_age_range')
+                ->where('kindergarten_id', $kindergarten->id)
+                ->where('group_age_range', $oldGroupId)
+                ->update([
+                    'space_filled' => $oldFilled,
+                    'space_free' => $oldFree
+                ]);
+        }
+        
+        // დამატება ახალ ჯგუფში
+        if ($kindergartenAgeRange && $kindergartenAgeRange->pivot) {
+            $newFilled = $kindergartenAgeRange->pivot->space_filled + 1;
+            $newFree = $kindergartenAgeRange->pivot->space_free - 1;
+            
+            DB::table('kindergarten_group_age_range')
+                ->where('kindergarten_id', $kindergarten->id)
+                ->where('group_age_range', $request->group_id)
+                ->update([
+                    'space_filled' => $newFilled,
+                    'space_free' => $newFree
+                ]);
+            
+            \Log::info('Space update (moved child)', [
+                'kindergarten_id' => $kindergarten->id,
+                'old_group_id' => $oldGroupId,
+                'new_group_id' => $request->group_id,
+                'new_filled' => $newFilled,
+                'new_free' => $newFree
+            ]);
+        }
+    }
+    // თუ group_id უცვლელი - არაფერი
 
     $action = $isNew ? 'kindergartener.create' : 'kindergartener.update';
     $this->logAudit($action, Kindergartener::class, $kindergartener->id, 'Kindergartener saved', $changes);
@@ -194,6 +300,33 @@ class KindergartenerController extends Controller
         $details = $model
             ? ['name' => $model->kids_first_name.' '.$model->kids_last_name, 'kids_personal_number' => $model->kids_personal_number]
             : null;
+        
+        // ხელმოხსნის ჯგუფიდან ადგილი რომელი ბავშვი წაიშლება
+        if ($model) {
+            $kindergarten = $model->kindergarten;
+            $kindergartenAgeRange = $kindergarten->currentAge($model->group_id);
+            
+            if ($kindergartenAgeRange && $kindergartenAgeRange->pivot) {
+                $newFilled = max(0, $kindergartenAgeRange->pivot->space_filled - 1);
+                $newFree = $kindergartenAgeRange->pivot->space_free + 1;
+                
+                DB::table('kindergarten_group_age_range')
+                    ->where('kindergarten_id', $kindergarten->id)
+                    ->where('group_age_range', $model->group_id)
+                    ->update([
+                        'space_filled' => $newFilled,
+                        'space_free' => $newFree
+                    ]);
+                
+                \Log::info('Space update (child deleted)', [
+                    'kindergarten_id' => $kindergarten->id,
+                    'group_id' => $model->group_id,
+                    'new_filled' => $newFilled,
+                    'new_free' => $newFree
+                ]);
+            }
+        }
+        
         Kindergartener::destroy($id);
         $this->logAudit('kindergartener.delete', Kindergartener::class, $id, 'Kindergartener deleted', $details);
         $message = [
