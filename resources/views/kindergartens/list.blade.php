@@ -71,10 +71,26 @@ function color_picker ($num) {
               $space_length = $calculater->sum('pivot.space_length');
               $space_filled = $calculater->sum('pivot.space_filled');
               $space_free = $calculater->sum('pivot.space_free');
+              
+              // Debug: detect zero-filled issues
+              $hasIssue = false;
+              $issueInfo = [];
+              foreach ($item->groupAgeRanges as $group) {
+                  if ($group->pivot->space_filled == 0 && $group->pivot->space_length > 0) {
+                      $hasIssue = true;
+                      $issueInfo[] = "Group {$group->id}: len={$group->pivot->space_length}, filled=0";
+                  }
+              }
             @endphp
-           <tr>
+           <tr @if($hasIssue) style="background-color: #fff3cd;" @endif>
             <td>{{$item->id}}</td>
-            <td>{{$item->name}}</td>
+            <td>
+              {{$item->name}}
+              @if($hasIssue)
+                <br><small class="text-danger">⚠️ space_filled=0 detected!</small>
+                <br><small class="text-muted">{{ implode(', ', $issueInfo) }}</small>
+              @endif
+            </td>
             <td>{{$item->municipality->name}}</td>
             <td><span class="badge badge-{{color_picker($space_length)}}">{{$space_length}}</span></td>
             <td><span class="badge badge-{{color_picker($space_filled)}}">{{$space_filled}}</span></td>
