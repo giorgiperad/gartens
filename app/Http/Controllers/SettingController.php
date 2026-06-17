@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
 
@@ -122,18 +123,19 @@ class SettingController extends Controller
             // ✅ safe null check with nullsafe operator
             $gardenByGroupAge = $item->kindergarten?->currentAge($item->group_id);
 
-            if ($gardenByGroupAge) {
-                $newData = [
-                    'space_filled' => $gardenByGroupAge->pivot->space_filled > 0
-                        ? $gardenByGroupAge->pivot->space_filled - 1
-                        : 0,
-                    'space_free' => $gardenByGroupAge->pivot->space_free + 1
-                ];
-
-                // ✅ use model instance instead of relation builder
-                $item->kindergarten
-                    ->groupAgeRanges()
-                    ->updateExistingPivot($item->group_id, $newData);
+            if ($gardenByGroupAge && $gardenByGroupAge->pivot) {
+                $newFilled = $gardenByGroupAge->pivot->space_filled > 0 
+                    ? $gardenByGroupAge->pivot->space_filled - 1 
+                    : 0;
+                $newFree = $gardenByGroupAge->pivot->space_free + 1;
+                
+                DB::table('kindergarten_group_age_range')
+                    ->where('kindergarten_id', $item->kindergarten->id)
+                    ->where('group_age_range', $item->group_id)
+                    ->update([
+                        'space_filled' => $newFilled,
+                        'space_free' => $newFree
+                    ]);
             } else {
                 \Log::warning("No age range found for group {$item->group_id} in kindergarten {$item->kindergarten->id}");
             }
@@ -214,29 +216,54 @@ class SettingController extends Controller
         Kindergarten::all()->each(function($item) {
             $item->groupAgeRanges->each(function($item_range) use ($item) {
                 $kindergartenersByGroupId = $item->KindergartenersByGroupId($item_range->id);
+                
                 if ($kindergartenersByGroupId) {
-                    if (!$kindergartenersByGroupId->total) $kindergartenersByGroupId->total = 0;
+                    $total = $kindergartenersByGroupId->total ?? 0;
                     
-                    $newData = [
-                        'space_length' => $kindergartenersByGroupId->total,
-                        'space_filled' => $kindergartenersByGroupId->total,
-                        'space_free' => 0
-                    ];
-
-                    $item->groupAgeRanges()->updateExistingPivot($kindergartenersByGroupId->group_id, $newData);
+                    DB::table('kindergarten_group_age_range')
+                        ->where('kindergarten_id', $item->id)
+                        ->where('group_age_range', $kindergartenersByGroupId->group_id)
+                        ->update([
+                            'space_length' => $total,
+                            'space_filled' => $total,
+                            'space_free' => 0
+                        ]);
                 } else {
-                    $item->groupAgeRanges()->updateExistingPivot($item_range->id, [
-                        'space_length' => 0,
-                        'space_filled' => 0,
-                        'space_free' => 0
-                    ]);
+                    DB::table('kindergarten_group_age_range')
+                        ->where('kindergarten_id', $item->id)
+                        ->where('group_age_range', $item_range->id)
+                        ->update([
+                            'space_length' => 0,
+                            'space_filled' => 0,
+                            'space_free' => 0
+                        ]);
                 }
-                $item->save();
+                
+                \Log::info('Space update (learning recalculation)', [
+                    'kindergarten_id' => $item->id,
+                    'group_id' => $item_range->id,
+                    'total' => $total ?? 0
+                ]);
             });
             
-            $item->groupAgeRanges()->updateExistingPivot(1, ['space_length' => 0, 'space_filled' => 0, 'space_free' => 0]);
+            // Clear group 1 (graduates group)
+            DB::table('kindergarten_group_age_range')
+                ->where('kindergarten_id', $item->id)
+                ->where('group_age_range', 1)
+                ->update(['space_length' => 0, 'space_filled' => 0, 'space_free' => 0]);
+            
             $item->save();
         });
+
+        $message = [
+            'flashType'    => 'success',
+            'flashMessage' => 'სწავლა დასრულდა წარმატებით'
+        ];
+
+        $this->logAudit('settings.learning', Setting::class, null, 'Learning cycle executed');
+
+        return back()->withInput()->withErrors([])->with($message);
+    }
 
         $message = [
             'flashType'    => 'success',
