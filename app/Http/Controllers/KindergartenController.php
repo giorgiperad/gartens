@@ -20,7 +20,7 @@ class KindergartenController extends Controller
     public function index()
     {
         //
-        $model = Kindergarten::all();
+        $model = Kindergarten::with('groupAgeRanges')->get();
         return view('kindergartens.list', ['model' => $model]);
     }
 
@@ -50,13 +50,33 @@ class KindergartenController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         };        
 
-        $filterRange = array_map(function($array) {
-           return ['space_free' => ($array['space_length'] - $array['space_filled'])] + $array;
-        }, array_filter($request->range, function($item) {
-           return !empty($item['space_length']);
-        }));
-
         $model = Kindergarten::firstOrNew(['id' => $request->id]);
+        
+        $filterRange = [];
+        foreach ($request->range as $groupId => $data) {
+            if (!empty($data['space_length'])) {
+                if ($model->id) {
+                    // რედაქტირება - space_filled დაცული უნდა იყოს
+                    $existing = $model->groupAgeRanges()
+                        ->wherePivot('group_age_range', $groupId)
+                        ->first();
+                    
+                    $filterRange[$groupId] = [
+                        'space_length' => $data['space_length'],
+                        'space_filled' => $existing ? $existing->pivot->space_filled : 0,
+                        'space_free' => $data['space_length'] - ($existing ? $existing->pivot->space_filled : 0)
+                    ];
+                } else {
+                    // ახალი - space_filled დამატებული არაფერი
+                    $filterRange[$groupId] = [
+                        'space_length' => $data['space_length'],
+                        'space_filled' => 0,
+                        'space_free' => $data['space_length']
+                    ];
+                }
+            }
+        }
+
         $model->fill($request->all());
         $model->save();
         $model->groupAgeRanges()->sync($filterRange);
