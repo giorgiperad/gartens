@@ -5,17 +5,19 @@
 <?php
 
 function color_picker ($num) {
+  if (is_null($num) || $num === '') {
+      return "secondary"; // Default color for empty/null values
+  }
   
   switch (true) {
     case $num < 20:
         return "danger";
-        break;
-    case $num > 20 && $num < 37:
+    case $num >= 20 && $num <= 37:
         return "warning";
-        break;
     case $num > 37:
         return "success";
-        break;
+    default:
+        return "secondary"; // Fallback
   }
 }
 
